@@ -31,3 +31,7 @@ Ever heard of that one movie about an one extraordinary rat who can cook? Sounds
 
 ## 🧑‍💻 Contributing  
 We welcome contributions! Feel free to submit issues and pull requests. Check out our [Contribution Guide](CONTRIBUTING.md) for more details.  
+
+
+## 📜 License
+This project is licensed under the MIT License.
