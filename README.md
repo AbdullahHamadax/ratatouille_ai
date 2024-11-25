@@ -8,6 +8,9 @@ Ever heard of that one movie about an one extraordinary rat who can cook? Sounds
 - 🤖 **AI Chatbot**: Need cooking advice or substitutes for missing ingredients? Ask our built-in chef chatbot!  
 - 🎨 **Ratatouille Theme**: Enjoy a delightful UI inspired by the beloved movie.  
 
+
+## 📷 Screenshots
+
 ## 🛠️ Tech Stack  
 - **Framework**: Flutter
 - **AI Models**:  
