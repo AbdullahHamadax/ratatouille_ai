@@ -3,6 +3,7 @@ import 'package:recipe_ly/screen/splash_screen.dart';
 import 'services/appwrite_service.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   AppwriteService.init();
   runApp(const MyApp());
 }

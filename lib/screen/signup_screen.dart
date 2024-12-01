@@ -213,10 +213,10 @@ class SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () {
-                  setState(() => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginScreen()),
-                      ));
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                  );
                 },
                 child: Text(
                   "Already have an account? Login",
