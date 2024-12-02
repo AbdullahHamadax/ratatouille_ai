@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:recipe_ly/screen/camera_screen.dart';
 import 'package:recipe_ly/screen/login_screen.dart';
 import 'package:recipe_ly/services/appwrite_service.dart';
 
@@ -57,7 +58,27 @@ class HomeScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
               ),
               child: Text(
-                'Press Me',
+                'Log out',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => CameraScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.primaryColor,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              child: Text(
+                'Open camera',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,

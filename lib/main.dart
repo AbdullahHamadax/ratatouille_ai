@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:recipe_ly/screen/splash_screen.dart';
 import 'services/appwrite_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppwriteService.init();
   runApp(const MyApp());
