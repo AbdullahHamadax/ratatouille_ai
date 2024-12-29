@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'dart:convert'; // For parsing JSON
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
 import 'package:recipe_ly/model/ingredients_list.dart';
 import 'package:recipe_ly/screen/ingredients_list_screen.dart';
 import 'package:recipe_ly/services/appwrite_service.dart';
@@ -43,6 +44,47 @@ class CameraScreenState extends State<CameraScreen> {
     super.dispose();
   }
 
+  Future<void> callOpenAi(String base64Image) async {
+    Functions functions = Functions(AppwriteService.client);
+    if (!mounted) return;
+
+    Future result = functions.createExecution(
+      functionId: '677070fd000631d14adb',
+      body: "data:image/jpeg;base64,$base64Image",
+      method: ExecutionMethod.pOST,
+      headers: {},
+    );
+
+    result.then((response) {
+      if (response.responseStatusCode == 200) {
+        var jsonMap = jsonDecode(jsonDecode(response.responseBody));
+        IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => IngredientsListScreen(
+              ingredientsList: ingredientsList,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Error: ${response.responseStatusCode}, ${response.responseBody}'),
+          ),
+        );
+      }
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $error'),
+        ),
+      );
+    });
+  }
+
   Future<void> takePicture(BuildContext context) async {
     late XFile picture;
     try {
@@ -59,49 +101,38 @@ class CameraScreenState extends State<CameraScreen> {
 
       final String base64Image = base64Encode(imageBytes);
 
-      Functions functions = Functions(AppwriteService.client);
-      if (!mounted) return;
-
-      Future result = functions.createExecution(
-        functionId: '677070fd000631d14adb',
-        body: "data:image/jpeg;base64,$base64Image",
-        method: ExecutionMethod.pOST,
-        headers: {},
-      );
-
-      result.then((response) {
-        if (response.responseStatusCode == 200) {
-          var jsonMap = jsonDecode(jsonDecode(response.responseBody));
-          IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
-
-          Navigator.pushReplacement(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(
-              builder: (context) => IngredientsListScreen(
-                ingredientsList: ingredientsList,
-              ),
-            ),
-          );
-        } else {
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Error: ${response.responseStatusCode}, ${response.responseBody}'),
-            ),
-          );
-        }
-      }).catchError((error) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $error'),
-          ),
-        );
-      });
+      await callOpenAi(base64Image);
     } finally {
       await File(picture.path).delete();
+    }
+  }
+
+  Future<void> openGallery(BuildContext context) async {
+    if (!mounted) return;
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+      if (image != null) {
+        final Uint8List imageBytes = await image.readAsBytes();
+        final String base64Image = base64Encode(imageBytes);
+
+        if (!mounted) return;
+
+        await callOpenAi(base64Image);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No image selected'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+        ),
+      );
     }
   }
 
@@ -122,15 +153,40 @@ class CameraScreenState extends State<CameraScreen> {
                   bottom: 20,
                   left: 0,
                   right: 0,
-                  child: Center(
-                    child: ElevatedButton(
-                      onPressed: () => takePicture(context),
-                      style: ElevatedButton.styleFrom(
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Button to skip to the next page
+                      ElevatedButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/nextPage'),
+                        style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(16),
+                        ),
+                        child: Icon(Icons.arrow_forward, size: 32),
                       ),
-                      child: Icon(Icons.camera, size: 32),
-                    ),
+
+                      // Capture button
+                      ElevatedButton(
+                        onPressed: () => takePicture(context),
+                        style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(16),
+                        ),
+                        child: Icon(Icons.camera, size: 32),
+                      ),
+
+                      // Button to open the gallery
+                      ElevatedButton(
+                        onPressed: () => openGallery(context),
+                        style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(16),
+                        ),
+                        child: Icon(Icons.photo, size: 32),
+                      ),
+                    ],
                   ),
                 ),
               ],
