@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/enums.dart';
 import 'package:camera/camera.dart';
@@ -77,6 +75,7 @@ class CameraScreenState extends State<CameraScreen> {
           IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
 
           Navigator.pushReplacement(
+            // ignore: use_build_context_synchronously
             context,
             MaterialPageRoute(
               builder: (context) => IngredientsListScreen(
@@ -85,6 +84,7 @@ class CameraScreenState extends State<CameraScreen> {
             ),
           );
         } else {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -93,6 +93,7 @@ class CameraScreenState extends State<CameraScreen> {
           );
         }
       }).catchError((error) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $error'),
