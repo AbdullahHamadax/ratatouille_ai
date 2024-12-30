@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <data android:scheme="appwrite-callback-[673e4306000314ab7628]" />
+                <data android:scheme="appwrite-callback-[6772e13e0030e088531f]" />
                 <!-- <data android:scheme="appwrite-callback-[6744a0f700127fd3f71b]" /> -->
             </intent-filter>
 
