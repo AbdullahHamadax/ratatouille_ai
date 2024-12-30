@@ -1,5 +1,11 @@
+import 'dart:convert';
+
+import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/model/ingredients_list.dart';
+
+import '../services/appwrite_service.dart';
 
 class IngredientsListScreen extends StatefulWidget {
   final IngredientsList ingredientsList;
@@ -11,9 +17,60 @@ class IngredientsListScreen extends StatefulWidget {
 }
 
 class IngredientsListScreenState extends State<IngredientsListScreen> {
+  //TODO: Reformat code and move callOpenAi to Utils
+  Future<void> callOpenAi() async {
+    Functions functions = Functions(AppwriteService.client);
+    if (!mounted) return;
+
+    Future result = functions.createExecution(
+      functionId: '6772e1ae002207c1e1b3',
+      body: widget.ingredientsList.toJson().toString(),
+      method: ExecutionMethod.pOST,
+      path: '/get/recipes',
+      headers: {},
+    );
+    result.then((response) {
+      if (response.responseStatusCode == 200) {
+        var jsonMap = jsonDecode(jsonDecode(response.responseBody));
+        print(jsonMap.toString());
+        //TODO: Use the the recipe generated and navigate to recipes page
+        // IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
+
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => IngredientsListScreen(
+        //       ingredientsList: ingredientsList,
+        //     ),
+        //   ),
+        // );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Error: ${response.responseStatusCode}, ${response.responseBody}'),
+          ),
+        );
+      }
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $error'),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () async {
+          await callOpenAi();
+          print(widget.ingredientsList.toJson());
+        },
+      ),
       appBar: AppBar(
         title: Text("Ingredients List"),
         leading: IconButton(
