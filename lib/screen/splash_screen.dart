@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:recipe_ly/components/navigator.dart';
 import '../services/appwrite_service.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
@@ -14,7 +15,7 @@ class SplashScreen extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          return HomeScreen();
+          return NavigatorBar();
         } else {
           return LoginScreen();
         }

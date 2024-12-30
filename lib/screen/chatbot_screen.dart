@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:screens/consts/app_color.dart';
-import 'package:screens/consts/typography.dart';
+import 'package:recipe_ly/consts/app_color.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -19,15 +18,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         title: Row(
           children: [
             const CircleAvatar(
-              radius: 24, 
+              radius: 24,
               backgroundImage: AssetImage(
                 'assets/images/linguini.jpg',
               ),
             ),
-            const SizedBox(width: 20), 
+            const SizedBox(width: 20),
             Column(
-              crossAxisAlignment: CrossAxisAlignment
-                  .start, 
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Linguini’s Chat Pot',
@@ -38,8 +36,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 Row(
                   children: [
                     Container(
-                      width: 12.0, 
-                      height: 12.0, 
+                      width: 12.0,
+                      height: 12.0,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.green,

@@ -59,7 +59,6 @@ class CameraScreenState extends State<CameraScreen> {
       if (response.responseStatusCode == 200) {
         var jsonMap = jsonDecode(jsonDecode(response.responseBody));
         IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -158,8 +157,14 @@ class CameraScreenState extends State<CameraScreen> {
                     children: [
                       // Button to skip to the next page
                       ElevatedButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/nextPage'),
+                        onPressed: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => IngredientsListScreen(
+                              ingredientsList: IngredientsList(ingredients: []),
+                            ),
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
                           shape: CircleBorder(),
                           padding: EdgeInsets.all(16),

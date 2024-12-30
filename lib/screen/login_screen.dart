@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/screen/home_screen.dart';
 import 'package:recipe_ly/screen/signup_screen.dart';
+import 'package:recipe_ly/screen/splash_screen.dart';
 import '../services/appwrite_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,7 +26,7 @@ class LoginScreenState extends State<LoginScreen> {
       _passwordController.clear();
       if (!mounted) return;
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          context, MaterialPageRoute(builder: (context) => SplashScreen()));
 
       setState(() => _message = "Login Successful!");
     } catch (e) {

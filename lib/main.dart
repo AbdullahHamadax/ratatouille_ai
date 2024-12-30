@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:recipe_ly/components/navigator.dart';
 import 'package:recipe_ly/consts/app_color.dart';
 import 'package:recipe_ly/screen/splash_screen.dart';
 import 'services/appwrite_service.dart';
@@ -16,12 +17,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.carlolinaBlue),
-        useMaterial3: true,
-      ),
-      home: SplashScreen(),
-    );
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.carlolinaBlue),
+          useMaterial3: true,
+        ),
+        home: const SplashScreen()
+        // home: SplashScreen(),
+        );
   }
 }
