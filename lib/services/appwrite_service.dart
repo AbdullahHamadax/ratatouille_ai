@@ -17,12 +17,16 @@ class AppwriteService {
   }
 
   static String getImageUrl(String fileId) {
-    return 'https://cloud.appwrite.io/v1/storage/buckets/your_bucket_id/files/$fileId/view?project=your_project_id';
+    return 'https://cloud.appwrite.io/v1/storage/buckets/your_bucket_id/files/$fileId/view?project=6772e13e0030e088531f';
   }
 
   static Future<void> updateIngredientsListWithImage(
       String imageUrl, String ingredientData) async {
     try {
+      final userId = await AppwriteService.account.get().then((user) {
+        return user.$id; // Get the user's unique ID.
+      });
+
       await AppwriteService.databases.createDocument(
         databaseId: '6772f54300021614d750',
         collectionId: '6772f5a10035ed3e74ca',
@@ -30,6 +34,7 @@ class AppwriteService {
         data: {
           'imageUrl': imageUrl,
           'ingredientsList': ingredientData,
+          'userId': userId
         },
       );
     } catch (e) {
