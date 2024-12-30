@@ -50,7 +50,7 @@ class CameraScreenState extends State<CameraScreen> {
     if (!mounted) return;
 
     try {
-      final fileId = await uploadImage(imageBytes, imageName);
+      final fileId = await AppwriteService.uploadImage(imageBytes, imageName);
       if (fileId == null) throw Exception('Failed to upload image.');
 
       final imageUrl = AppwriteService.getImageUrl(fileId);
@@ -59,41 +59,6 @@ class CameraScreenState extends State<CameraScreen> {
       await callOpenAi(base64Image, imageUrl);
     } catch (e) {
       print('Error in handleImage: $e');
-    }
-  }
-
-  Future<String?> uploadImage(Uint8List imageBytes, String imageName) async {
-    try {
-      final result = await AppwriteService.storage.createFile(
-        bucketId: '6772f6470035a6304644',
-        fileId: ID.unique(),
-        file: InputFile.fromBytes(
-          bytes: imageBytes,
-          filename: imageName,
-        ),
-      );
-
-      return result.$id; // Return the File ID
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
-  }
-
-  Future<void> updateIngredientsListWithImage(
-      String imageUrl, String ingredientData) async {
-    try {
-      await AppwriteService.databases.createDocument(
-        databaseId: '6772f54300021614d750',
-        collectionId: '6772f5a10035ed3e74ca',
-        documentId: ID.unique(),
-        data: {
-          'imageUrl': imageUrl,
-          'ingredientsList': ingredientData,
-        },
-      );
-    } catch (e) {
-      print('Error updating database: $e');
     }
   }
 
@@ -123,7 +88,8 @@ class CameraScreenState extends State<CameraScreen> {
         final jsonMap = jsonDecode(pureJsonString);
         final ingredientsList = IngredientsList.fromJson(jsonMap);
 
-        await updateIngredientsListWithImage(imageUrl, pureJsonString);
+        await AppwriteService.updateIngredientsListWithImage(
+            imageUrl, pureJsonString);
 
         Navigator.push(
           context,
