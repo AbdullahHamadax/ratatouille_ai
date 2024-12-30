@@ -33,6 +33,7 @@ class CameraScreen extends StatefulWidget {
 class CameraScreenState extends State<CameraScreen> {
   late Future<void> _initializeControllerFuture;
   bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +46,58 @@ class CameraScreenState extends State<CameraScreen> {
     super.dispose();
   }
 
-  Future<void> callOpenAi(String base64Image) async {
+  Future<void> handleImage(Uint8List imageBytes, String imageName) async {
+    if (!mounted) return;
+
+    try {
+      final fileId = await uploadImage(imageBytes, imageName);
+      if (fileId == null) throw Exception('Failed to upload image.');
+
+      final imageUrl = AppwriteService.getImageUrl(fileId);
+      final base64Image = base64Encode(imageBytes);
+
+      await callOpenAi(base64Image, imageUrl);
+    } catch (e) {
+      print('Error in handleImage: $e');
+    }
+  }
+
+  Future<String?> uploadImage(Uint8List imageBytes, String imageName) async {
+    try {
+      final result = await AppwriteService.storage.createFile(
+        bucketId: '6772f6470035a6304644',
+        fileId: ID.unique(),
+        file: InputFile.fromBytes(
+          bytes: imageBytes,
+          filename: imageName,
+        ),
+      );
+
+      return result.$id; // Return the File ID
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+
+  Future<void> updateIngredientsListWithImage(
+      String imageUrl, String ingredientData) async {
+    try {
+      await AppwriteService.databases.createDocument(
+        databaseId: '6772f54300021614d750',
+        collectionId: '6772f5a10035ed3e74ca',
+        documentId: ID.unique(),
+        data: {
+          'imageUrl': imageUrl,
+          'ingredientsList': ingredientData,
+        },
+      );
+    } catch (e) {
+      print('Error updating database: $e');
+    }
+  }
+
+  Future<void> callOpenAi(String base64Image, String imageUrl) async {
     setState(() {
       _isLoading = true;
     });
@@ -54,53 +106,50 @@ class CameraScreenState extends State<CameraScreen> {
       Functions functions = Functions(AppwriteService.client);
       if (!mounted) return;
 
-      Future result = functions.createExecution(
+      final result = await functions.createExecution(
           functionId: '6772e1ae002207c1e1b3',
           body: "data:image/jpeg;base64,$base64Image",
           method: ExecutionMethod.pOST,
           headers: {},
           path: "/get/ingredients");
 
-      result.then((response) {
-        if (response.responseStatusCode == 200) {
-          var jsonMap = jsonDecode(jsonDecode(response.responseBody));
-          IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
+      setState(() {
+        _isLoading = false;
+      });
+      _cameraController.resumePreview();
 
-          setState(() {
-            _isLoading = false;
-          });
-          _cameraController.resumePreview();
+      if (result.responseStatusCode == 200) {
+        final String pureJsonString = jsonDecode(result.responseBody);
+        final jsonMap = jsonDecode(pureJsonString);
+        final ingredientsList = IngredientsList.fromJson(jsonMap);
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => IngredientsListScreen(
-                ingredientsList: ingredientsList,
-              ),
+        await updateIngredientsListWithImage(imageUrl, pureJsonString);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => IngredientsListScreen(
+              ingredientsList: ingredientsList,
             ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Error: ${response.responseStatusCode}, ${response.responseBody}'),
-            ),
-          );
-        }
-      }).catchError((error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $error'),
           ),
         );
-      });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Error: ${result.responseStatusCode}, ${result.responseBody}'),
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-        ),
+        SnackBar(content: Text('Error: $e')),
       );
-    } finally {}
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> takePicture(BuildContext context) async {
@@ -119,11 +168,24 @@ class CameraScreenState extends State<CameraScreen> {
       } else {
         imageBytes = await File(picture.path).readAsBytes();
       }
+      await handleImage(imageBytes, picture.name);
+      // String? imageId = await uploadImage(imageBytes, picture.name);
+      // if (imageId == null) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(
+      //       content: Text('Error uploading image'),
+      //     ),
+      //   );
+      //   return;
+      // }
 
-      final String base64Image = base64Encode(imageBytes);
+      // final String base64Image = base64Encode(imageBytes);
 
-      await callOpenAi(base64Image);
+      // await callOpenAi(base64Image);
     } finally {
+      setState(() {
+        _isLoading = false;
+      });
       await File(picture.path).delete();
     }
   }
@@ -135,15 +197,18 @@ class CameraScreenState extends State<CameraScreen> {
     if (!mounted) return;
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      final XFile? picture =
+          await picker.pickImage(source: ImageSource.gallery);
 
-      if (image != null) {
-        final Uint8List imageBytes = await image.readAsBytes();
-        final String base64Image = base64Encode(imageBytes);
+      if (picture != null) {
+        final Uint8List imageBytes = await picture.readAsBytes();
+        await handleImage(imageBytes, picture.name);
 
-        if (!mounted) return;
+        // final String base64Image = base64Encode(imageBytes);
 
-        await callOpenAi(base64Image);
+        // if (!mounted) return;
+
+        // await callOpenAi(base64Image);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -157,7 +222,11 @@ class CameraScreenState extends State<CameraScreen> {
           content: Text('Error: $e'),
         ),
       );
-    } finally {}
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
