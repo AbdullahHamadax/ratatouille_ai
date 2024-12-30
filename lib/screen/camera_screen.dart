@@ -32,6 +32,7 @@ class CameraScreen extends StatefulWidget {
 
 class CameraScreenState extends State<CameraScreen> {
   late Future<void> _initializeControllerFuture;
+  bool _isLoading = false;
   @override
   void initState() {
     super.initState();
@@ -45,46 +46,67 @@ class CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> callOpenAi(String base64Image) async {
-    Functions functions = Functions(AppwriteService.client);
-    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
+    _cameraController.pausePreview();
+    try {
+      Functions functions = Functions(AppwriteService.client);
+      if (!mounted) return;
 
-    Future result = functions.createExecution(
-      functionId: '6772e1ae002207c1e1b3',
-      body: "data:image/jpeg;base64,$base64Image",
-      method: ExecutionMethod.pOST,
-      headers: {},
-    );
+      Future result = functions.createExecution(
+          functionId: '6772e1ae002207c1e1b3',
+          body: "data:image/jpeg;base64,$base64Image",
+          method: ExecutionMethod.pOST,
+          headers: {},
+          path: "/get/ingredients");
 
-    result.then((response) {
-      if (response.responseStatusCode == 200) {
-        var jsonMap = jsonDecode(jsonDecode(response.responseBody));
-        IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => IngredientsListScreen(
-              ingredientsList: ingredientsList,
+      result.then((response) {
+        if (response.responseStatusCode == 200) {
+          var jsonMap = jsonDecode(jsonDecode(response.responseBody));
+          IngredientsList ingredientsList = IngredientsList.fromJson(jsonMap);
+
+          setState(() {
+            _isLoading = false;
+          });
+          _cameraController.resumePreview();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => IngredientsListScreen(
+                ingredientsList: ingredientsList,
+              ),
             ),
-          ),
-        );
-      } else {
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Error: ${response.responseStatusCode}, ${response.responseBody}'),
+            ),
+          );
+        }
+      }).catchError((error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Error: ${response.responseStatusCode}, ${response.responseBody}'),
+            content: Text('Error: $error'),
           ),
         );
-      }
-    }).catchError((error) {
+      });
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $error'),
+          content: Text('Error: $e'),
         ),
       );
-    });
+    } finally {}
   }
 
   Future<void> takePicture(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
     late XFile picture;
     try {
       // Ensure the camera is initialized.
@@ -107,6 +129,9 @@ class CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> openGallery(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
     if (!mounted) return;
     try {
       final ImagePicker picker = ImagePicker();
@@ -132,74 +157,98 @@ class CameraScreenState extends State<CameraScreen> {
           content: Text('Error: $e'),
         ),
       );
-    }
+    } finally {}
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // Display the camera preview as full screen if initialized.
-            return Stack(
-              children: [
-                SizedBox.expand(
+      body: Stack(
+        children: [
+          FutureBuilder<void>(
+            future: _initializeControllerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return SizedBox.expand(
                   child: CameraPreview(_cameraController),
+                );
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
+          // Overlay for loading
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.6),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16),
+                    Text(
+                      'Processing image...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-                Positioned(
-                  bottom: 20,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Button to skip to the next page
-                      ElevatedButton(
-                        onPressed: () => Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => IngredientsListScreen(
-                              ingredientsList: IngredientsList(ingredients: []),
-                            ),
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          shape: CircleBorder(),
-                          padding: EdgeInsets.all(16),
-                        ),
-                        child: Icon(Icons.arrow_forward, size: 32),
+              ),
+            ),
+          // Buttons at the bottom
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Skip Button
+                ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => IngredientsListScreen(
+                        ingredientsList: IngredientsList(ingredients: []),
                       ),
-
-                      // Capture button
-                      ElevatedButton(
-                        onPressed: () => takePicture(context),
-                        style: ElevatedButton.styleFrom(
-                          shape: CircleBorder(),
-                          padding: EdgeInsets.all(16),
-                        ),
-                        child: Icon(Icons.camera, size: 32),
-                      ),
-
-                      // Button to open the gallery
-                      ElevatedButton(
-                        onPressed: () => openGallery(context),
-                        style: ElevatedButton.styleFrom(
-                          shape: CircleBorder(),
-                          padding: EdgeInsets.all(16),
-                        ),
-                        child: Icon(Icons.photo, size: 32),
-                      ),
-                    ],
+                    ),
                   ),
+                  style: ElevatedButton.styleFrom(
+                    shape: CircleBorder(),
+                    padding: EdgeInsets.all(20),
+                  ),
+                  child: Icon(Icons.arrow_forward, size: 32),
+                ),
+
+                // Capture Button
+                ElevatedButton(
+                  onPressed: () => takePicture(context),
+                  style: ElevatedButton.styleFrom(
+                    shape: CircleBorder(),
+                    padding: EdgeInsets.all(20),
+                    backgroundColor: Colors.blueAccent,
+                  ),
+                  child: Icon(Icons.camera, size: 32, color: Colors.white),
+                ),
+
+                // Gallery Button
+                ElevatedButton(
+                  onPressed: () => openGallery(context),
+                  style: ElevatedButton.styleFrom(
+                    shape: CircleBorder(),
+                    padding: EdgeInsets.all(20),
+                    backgroundColor: Colors.green,
+                  ),
+                  child: Icon(Icons.photo, size: 32, color: Colors.white),
                 ),
               ],
-            );
-          } else {
-            return Center(child: CircularProgressIndicator());
-          }
-        },
+            ),
+          ),
+        ],
       ),
     );
   }

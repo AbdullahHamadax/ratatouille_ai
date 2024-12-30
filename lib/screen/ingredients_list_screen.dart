@@ -16,6 +16,12 @@ class IngredientsListScreenState extends State<IngredientsListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Ingredients List"),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
       ),
       body: ListView.builder(
         itemCount: widget.ingredientsList.ingredients.length,
