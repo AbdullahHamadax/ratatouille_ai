@@ -162,6 +162,8 @@ class CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -220,8 +222,10 @@ class CameraScreenState extends State<CameraScreen> {
                   style: ElevatedButton.styleFrom(
                     shape: CircleBorder(),
                     padding: EdgeInsets.all(20),
+                    backgroundColor: theme.primaryColor,
                   ),
-                  child: Icon(Icons.arrow_forward, size: 32),
+                  child:
+                      Icon(Icons.arrow_forward, size: 32, color: Colors.white),
                 ),
 
                 // Capture Button
@@ -230,7 +234,7 @@ class CameraScreenState extends State<CameraScreen> {
                   style: ElevatedButton.styleFrom(
                     shape: CircleBorder(),
                     padding: EdgeInsets.all(20),
-                    backgroundColor: Colors.blueAccent,
+                    backgroundColor: theme.primaryColor,
                   ),
                   child: Icon(Icons.camera, size: 32, color: Colors.white),
                 ),
@@ -241,7 +245,7 @@ class CameraScreenState extends State<CameraScreen> {
                   style: ElevatedButton.styleFrom(
                     shape: CircleBorder(),
                     padding: EdgeInsets.all(20),
-                    backgroundColor: Colors.green,
+                    backgroundColor: theme.primaryColor,
                   ),
                   child: Icon(Icons.photo, size: 32, color: Colors.white),
                 ),
