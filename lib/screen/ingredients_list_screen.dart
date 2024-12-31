@@ -173,105 +173,132 @@ class IngredientsListScreenState extends State<IngredientsListScreen> {
                 ),
               ),
             )
-          : ListView.builder(
-              itemCount: widget.ingredientsList.ingredients.length,
-              itemBuilder: (context, index) {
-                final ingredient = widget.ingredientsList.ingredients[index];
+          : Container(
+              margin: EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: ListView.builder(
+                      itemCount: widget.ingredientsList.ingredients.length,
+                      itemBuilder: (context, index) {
+                        final ingredient =
+                            widget.ingredientsList.ingredients[index];
 
-                return Dismissible(
-                  key: Key(ingredient.name ?? ingredient.product),
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerLeft,
-                    padding: EdgeInsets.only(left: 20),
-                    child: Icon(Icons.delete, color: Colors.white),
-                  ),
-                  secondaryBackground: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.only(right: 20),
-                    child: Icon(Icons.delete, color: Colors.white),
-                  ),
-                  onDismissed: (direction) {
-                    final removedIngredient = ingredient;
-                    _deleteIngredient(index);
+                        return Dismissible(
+                          key: Key(ingredient.name ?? ingredient.product),
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerLeft,
+                            padding: EdgeInsets.only(left: 20),
+                            child: Icon(Icons.delete, color: Colors.white),
+                          ),
+                          secondaryBackground: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 20),
+                            child: Icon(Icons.delete, color: Colors.white),
+                          ),
+                          onDismissed: (direction) {
+                            final removedIngredient = ingredient;
+                            _deleteIngredient(index);
 
-                    // Show Undo Snackbar
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Ingredient deleted'),
-                        action: SnackBarAction(
-                          label: 'Undo',
-                          onPressed: () {
-                            setState(() {
-                              widget.ingredientsList.ingredients
-                                  .insert(index, removedIngredient);
-                            });
+                            // Show Undo Snackbar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Ingredient deleted'),
+                                action: SnackBarAction(
+                                  label: 'Undo',
+                                  onPressed: () {
+                                    setState(() {
+                                      widget.ingredientsList.ingredients
+                                          .insert(index, removedIngredient);
+                                    });
+                                  },
+                                ),
+                              ),
+                            );
                           },
-                        ),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    color: theme.cardColor,
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Product Name (Takes up remaining space)
-                          Expanded(
-                            child: Text(
-                              ingredient.name ?? ingredient.product,
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                              overflow: TextOverflow.ellipsis,
+                          child: Card(
+                            color: theme.cardColor,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // Product Name (Takes up remaining space)
+                                  Expanded(
+                                    child: Text(
+                                      ingredient.name ?? ingredient.product,
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+
+                                  // Quantity Controls and Edit Button
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.remove,
+                                            color: Colors.red),
+                                        onPressed: () {
+                                          setState(() {
+                                            if (ingredient.amount > 1)
+                                              ingredient.amount--;
+                                          });
+                                        },
+                                      ),
+                                      Text(
+                                        '${ingredient.amount} ${ingredient.unit.toShortString()}',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.add,
+                                            color: Colors.green),
+                                        onPressed: () {
+                                          setState(() {
+                                            ingredient.amount++;
+                                          });
+                                        },
+                                      ),
+
+                                      // Edit Button
+                                      IconButton(
+                                        icon: Icon(Icons.edit,
+                                            color: theme.primaryColor),
+                                        onPressed: () => _addOrEditIngredient(
+                                            ingredient: ingredient,
+                                            index: index),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-
-                          // Quantity Controls and Edit Button
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.remove, color: Colors.red),
-                                onPressed: () {
-                                  setState(() {
-                                    if (ingredient.amount > 1)
-                                      ingredient.amount--;
-                                  });
-                                },
-                              ),
-                              Text(
-                                '${ingredient.amount} ${ingredient.unit.toShortString()}',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.add, color: Colors.green),
-                                onPressed: () {
-                                  setState(() {
-                                    ingredient.amount++;
-                                  });
-                                },
-                              ),
-
-                              // Edit Button
-                              IconButton(
-                                icon:
-                                    Icon(Icons.edit, color: theme.primaryColor),
-                                onPressed: () => _addOrEditIngredient(
-                                    ingredient: ingredient, index: index),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
+                  Container(
+                    height: 55,
+                    width: 180,
+                    child: FloatingActionButton(
+                      child: Icon(Icons.generating_tokens_rounded),
+                      onPressed: () async {
+                        await callOpenAi();
+                      },
+                    ),
+                  )
+                ],
+              ),
             ),
     );
   }
