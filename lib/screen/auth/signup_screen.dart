@@ -1,9 +1,9 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/screen/home_screen.dart';
-import 'package:recipe_ly/screen/login_screen.dart';
+import 'package:recipe_ly/screen/auth/login_screen.dart';
 import 'package:recipe_ly/screen/splash_screen.dart';
-import '../services/appwrite_service.dart';
+import '../../services/appwrite_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -17,10 +17,14 @@ class SignupScreenState extends State<SignupScreen> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _message = '';
 
   void _authenticate() async {
     final fullName = "${_firstNameController.text} ${_lastNameController.text}";
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevents dismissing the dialog
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
     try {
       await AppwriteService.account.create(
         userId: 'unique()',
@@ -28,7 +32,6 @@ class SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text,
         name: fullName,
       );
-      setState(() => _message = "Signup Successful!");
 
       // login right after signing up user using same credentials
       await AppwriteService.account.createEmailPasswordSession(
@@ -42,6 +45,7 @@ class SignupScreenState extends State<SignupScreen> {
       _passwordController.clear();
 
       if (!mounted) return;
+      Navigator.of(context).pop();
 
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => SplashScreen()));
@@ -253,17 +257,6 @@ class SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
               ),
-              if (_message.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Text(
-                  _message,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.error,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
             ],
           ),
         ),

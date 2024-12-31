@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/components/navigator.dart';
 import 'package:recipe_ly/screen/camera_screen.dart';
-import 'package:recipe_ly/screen/login_screen.dart';
+import 'package:recipe_ly/screen/auth/login_screen.dart';
 import 'package:recipe_ly/services/appwrite_service.dart';
 
 class HomeScreen extends StatelessWidget {

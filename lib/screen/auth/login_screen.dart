@@ -1,9 +1,9 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/screen/home_screen.dart';
-import 'package:recipe_ly/screen/signup_screen.dart';
+import 'package:recipe_ly/screen/auth/signup_screen.dart';
 import 'package:recipe_ly/screen/splash_screen.dart';
-import '../services/appwrite_service.dart';
+import '../../services/appwrite_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _message = '';
 
   void _authenticate() async {
     // Show a loading spinner while the authentication is in progress
@@ -197,17 +196,6 @@ class LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              if (_message.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Text(
-                  _message,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.error,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
             ],
           ),
         ),

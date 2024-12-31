@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:recipe_ly/components/navigator.dart';
 import '../services/appwrite_service.dart';
 import 'home_screen.dart';
-import 'login_screen.dart';
+import 'auth/login_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
