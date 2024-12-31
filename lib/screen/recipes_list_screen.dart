@@ -29,15 +29,15 @@ class RecipesListScreenState extends State<RecipesListScreen> {
         itemBuilder: (context, index) {
           final recipe = widget.recipesList.recipes[index];
           return Card(
+            key: Key(recipe.name),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: InkWell(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RecipeScreen(
-                        recipe: widget.recipesList.recipes[index]
-                    ),
+                    builder: (context) =>
+                        RecipeScreen(recipe: widget.recipesList.recipes[index]),
                   ),
                 );
               },

@@ -52,6 +52,8 @@ dev_dependencies:
   google_fonts: ^6.2.1
   flutter_screenutil: ^5.9.3
   iconsax: ^0.0.8
+  provider: ^6.1.2
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

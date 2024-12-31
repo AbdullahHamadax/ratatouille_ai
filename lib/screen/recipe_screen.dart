@@ -59,7 +59,7 @@ class RecipeScreen extends StatelessWidget {
                   Container(
                     child: RichText(
                       text: TextSpan(
-                        text: "15 minutes",
+                        text: "${recipe.preparationTime} minutes",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -70,37 +70,39 @@ class RecipeScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             Expanded(
               flex: 1,
               child: Container(
-                  child: DefaultTabController(
-                    length: 2,
-                    child: Column(children: [
-                      Container(
-                        height: 40,
-                        child: TabBar(
-                            unselectedLabelColor: Colors.deepOrange,
-                            labelColor: Colors.deepOrangeAccent,
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            tabs: [
-                              Container(
-                                  height: 40,
-                                  child: Center(child: Text("Ingredients"))),
-                              Container(
-                                  height: 40,
-                                  child: Center(child: Text("Recipes"))),
-                            ]),
-                      ),
-                      Expanded(
-                        flex: 1,
-                          child: TabBarView(
-                              children: [IngredientsListTab(ingredientsList: recipe.ingredientsList), StepsListTab(steps: recipe.steps)]),
-                        ),
-                    ]),
-                  ),
+                child: DefaultTabController(
+                  length: 2,
+                  child: Column(children: [
+                    Container(
+                      height: 40,
+                      child: TabBar(
+                          unselectedLabelColor: Colors.deepOrange,
+                          labelColor: Colors.deepOrangeAccent,
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          tabs: [
+                            Container(
+                                height: 40,
+                                child: Center(child: Text("Ingredients"))),
+                            Container(
+                                height: 40,
+                                child: Center(child: Text("Recipes"))),
+                          ]),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: TabBarView(children: [
+                        IngredientsListTab(
+                            ingredientsList: recipe.ingredientsList),
+                        StepsListTab(steps: recipe.steps)
+                      ]),
+                    ),
+                  ]),
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -113,11 +115,11 @@ class IngredientsListTab extends StatefulWidget {
   IngredientsListTab({required this.ingredientsList});
 
   @override
-  State<IngredientsListTab> createState() => _IngredientsListTabState(length: this.ingredientsList.ingredients.length);
+  State<IngredientsListTab> createState() =>
+      _IngredientsListTabState(length: this.ingredientsList.ingredients.length);
 }
 
 class _IngredientsListTabState extends State<IngredientsListTab> {
-
   // List of booleans to track whether an item is checked or not
   final int length;
   late final List<bool> itemChecked;
@@ -126,7 +128,7 @@ class _IngredientsListTabState extends State<IngredientsListTab> {
   }
   @override
   Widget build(BuildContext context) {
-    return  ListView.builder(
+    return ListView.builder(
       itemCount: widget.ingredientsList.ingredients.length,
       itemBuilder: (context, index) {
         final ingredient = widget.ingredientsList.ingredients[index];
@@ -136,14 +138,14 @@ class _IngredientsListTabState extends State<IngredientsListTab> {
             setState(() {
               itemChecked[index] = selected!;
             });
-            },
-          title: Text(widget.ingredientsList.ingredients[index].name.toString()),
+          },
+          title:
+              Text(widget.ingredientsList.ingredients[index].name.toString()),
         );
       },
     );
   }
 }
-
 
 class StepsListTab extends StatefulWidget {
   final List<RecipeStep> steps;
@@ -154,12 +156,11 @@ class StepsListTab extends StatefulWidget {
 }
 
 class _StepsListTabState extends State<StepsListTab> {
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return  Container(
+    return Container(
       child: Column(
         children: [
           Expanded(
@@ -170,14 +171,14 @@ class _StepsListTabState extends State<StepsListTab> {
                 return Center(
                   child: Card(
                     elevation: 1,
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),                  color: theme.cardColor,
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    color: theme.cardColor,
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Container(
-                        child: Text(widget.steps[index].description),
-                      )
-                    ),
+                        padding: const EdgeInsets.all(16.0),
+                        child: Container(
+                          child: Text(widget.steps[index].description),
+                        )),
                   ),
                 );
               },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:recipe_ly/screen/camera_screen.dart';
+import 'package:recipe_ly/screen/history_screen.dart';
 import 'package:recipe_ly/screen/home_screen.dart';
 
 class NavigatorBar extends StatefulWidget {
@@ -11,8 +12,10 @@ class NavigatorBar extends StatefulWidget {
 }
 
 class NavigationScreenState extends State<NavigatorBar> {
-  int currentPageIndex = 0;
+  int currentPageIndex = 1;
+
   final List<Widget> screens = [
+    HistoryScreen(key: UniqueKey()),
     HomeScreen(),
     CameraScreen(),
   ];
@@ -27,6 +30,10 @@ class NavigationScreenState extends State<NavigatorBar> {
   void navigateToPage(int index) {
     setState(() {
       currentPageIndex = index;
+      if (index == 0) {
+        // Refresh the HistoryScreen when navigating to it
+        screens[0] = HistoryScreen(key: UniqueKey());
+      }
     });
   }
 
@@ -40,9 +47,17 @@ class NavigationScreenState extends State<NavigatorBar> {
         onDestinationSelected: (int index) {
           setState(() {
             currentPageIndex = index;
+            if (index == 0) {
+              // Refresh the HistoryScreen when navigating to it
+              screens[0] = HistoryScreen(key: UniqueKey());
+            }
           });
         },
         destinations: const [
+          NavigationDestination(
+            icon: Icon(Iconsax.shopping_cart),
+            label: 'history',
+          ),
           NavigationDestination(
             icon: Icon(Iconsax.home),
             label: 'home',

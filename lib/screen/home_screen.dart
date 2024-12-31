@@ -67,30 +67,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                context
-                    .findAncestorStateOfType<NavigationScreenState>()
-                    ?.navigateToPage(1);
-
-                // Navigator.pushReplacement(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => CameraScreen()),
-                // );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              ),
-              child: Text(
-                'Open camera',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-            ),
           ],
         ),
       ),

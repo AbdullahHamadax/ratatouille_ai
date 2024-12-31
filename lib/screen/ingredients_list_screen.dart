@@ -1,16 +1,9 @@
-import 'dart:convert';
-
-import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/dialogs/ingredient_dialog.dart';
 import 'package:recipe_ly/model/ingredient.dart';
 import 'package:recipe_ly/model/ingredients_list.dart';
-import 'package:recipe_ly/model/recipe.dart';
-import 'package:recipe_ly/model/recipes_list.dart';
 import 'package:recipe_ly/screen/recipes_list_screen.dart';
-
-import '../services/appwrite_service.dart';
+import 'package:recipe_ly/services/openai_service.dart';
 
 class IngredientsListScreen extends StatefulWidget {
   final IngredientsList ingredientsList;
@@ -24,49 +17,35 @@ class IngredientsListScreen extends StatefulWidget {
 class IngredientsListScreenState extends State<IngredientsListScreen> {
   Ingredient? _recentlyRemovedIngredient;
   int? _recentlyRemovedIndex;
-  //TODO: Reformat code and move callOpenAi to Utils
-  Future<void> callOpenAi() async {
-    Functions functions = Functions(AppwriteService.client);
-    if (!mounted) return;
 
-    Future result = functions.createExecution(
-      functionId: '6772e1ae002207c1e1b3',
-      body: widget.ingredientsList.toJson().toString(),
-      method: ExecutionMethod.pOST,
-      path: '/get/recipes',
-      headers: {},
+  Future<void> _createRecipe() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevents dismissing the dialog
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    result.then((response) {
-      if (response.responseStatusCode == 200) {
-        var jsonMap = jsonDecode(jsonDecode(response.responseBody));
-        print(jsonMap.toString());
 
-        Recipe recipe = Recipe.fromJson(jsonMap);
-        List<Recipe> recipes = [recipe, recipe, recipe];
-        RecipesList recipesList = RecipesList(recipes: recipes);
-        Navigator.pushReplacement(
+    try {
+      final recipesList =
+          await OpenaiService.generateRecipes(widget.ingredientsList);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => RecipesListScreen(
               recipesList: recipesList,
             ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Error: ${response.responseStatusCode}, ${response.responseBody}'),
-          ),
-        );
-      }
-    }).catchError((error) {
+          ));
+    } catch (e) {
+      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $error'),
+          content: Text('Error: ${e.toString()}'),
         ),
       );
-    });
+    }
   }
 
   void _addOrEditIngredient({Ingredient? ingredient, int? index}) {
@@ -293,7 +272,7 @@ class IngredientsListScreenState extends State<IngredientsListScreen> {
                     child: FloatingActionButton(
                       child: Icon(Icons.generating_tokens_rounded),
                       onPressed: () async {
-                        await callOpenAi();
+                        await _createRecipe();
                       },
                     ),
                   )

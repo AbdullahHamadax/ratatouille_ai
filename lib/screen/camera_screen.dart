@@ -1,5 +1,3 @@
-import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/enums.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
