@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/model/ingredients_list.dart';
 import 'package:recipe_ly/model/recipe.dart';
+import 'package:recipe_ly/services/appwrite_service.dart';
 
 class RecipeScreen extends StatelessWidget {
   final Recipe recipe;
@@ -12,8 +13,6 @@ class RecipeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    //TODO: Ask chatgpt for an image and display it
-    //TODO: Ask chatgpt for an estimated preparation time
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(40),
@@ -32,39 +31,49 @@ class RecipeScreen extends StatelessWidget {
           children: [
             Container(
               height: 200,
-              child: Center(
-                child: Image.asset(
-                  'assets/images/fruits.jpg',
-                  // width: 200.0, // Set width (optional)
-                  // height: 200.0, // Set height (optional)
-                  fit: BoxFit.cover, // Adjust how the image fit
-                ),
+              child: FutureBuilder<String>(
+                future: AppwriteService.getImageRecipeUrl(
+                    recipe.name), // Fetch the URL
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Show loading indicator while waiting for the image URL
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    // Show error if something went wrong
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (snapshot.hasData) {
+                    // Show image once data is received
+                    return Center(
+                      child: Image.network(
+                        snapshot.data!, // Use the URL returned by the function
+                        fit: BoxFit.cover, // Adjust how the image fits
+                      ),
+                    );
+                  } else {
+                    // If no data, show a placeholder or default message
+                    return Center(child: Text('No image found.'));
+                  }
+                },
               ),
             ),
-            SizedBox(
-              height: 10,
-            ),
+            SizedBox(height: 10),
             Container(
               margin: EdgeInsets.all(10),
               height: 20,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    child: Icon(
-                      Icons.timer,
-                      color: Colors.deepOrange,
-                    ),
+                  Icon(
+                    Icons.timer,
+                    color: Colors.deepOrange,
                   ),
-                  Container(
-                    child: RichText(
-                      text: TextSpan(
-                        text: "${recipe.preparationTime} minutes",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.deepOrange),
-                      ),
+                  RichText(
+                    text: TextSpan(
+                      text: "${recipe.preparationTime} minutes",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.deepOrange),
                     ),
                   ),
                 ],
@@ -72,34 +81,37 @@ class RecipeScreen extends StatelessWidget {
             ),
             Expanded(
               flex: 1,
-              child: Container(
-                child: DefaultTabController(
-                  length: 2,
-                  child: Column(children: [
+              child: DefaultTabController(
+                length: 2,
+                child: Column(
+                  children: [
                     Container(
                       height: 40,
                       child: TabBar(
-                          unselectedLabelColor: Colors.deepOrange,
-                          labelColor: Colors.deepOrangeAccent,
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          tabs: [
-                            Container(
-                                height: 40,
-                                child: Center(child: Text("Ingredients"))),
-                            Container(
-                                height: 40,
-                                child: Center(child: Text("Recipes"))),
-                          ]),
+                        unselectedLabelColor: Colors.deepOrange,
+                        labelColor: Colors.deepOrangeAccent,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        tabs: [
+                          Container(
+                              height: 40,
+                              child: Center(child: Text("Ingredients"))),
+                          Container(
+                              height: 40,
+                              child: Center(child: Text("Recipes"))),
+                        ],
+                      ),
                     ),
                     Expanded(
                       flex: 1,
-                      child: TabBarView(children: [
-                        IngredientsListTab(
-                            ingredientsList: recipe.ingredientsList),
-                        StepsListTab(steps: recipe.steps)
-                      ]),
+                      child: TabBarView(
+                        children: [
+                          IngredientsListTab(
+                              ingredientsList: recipe.ingredientsList),
+                          StepsListTab(steps: recipe.steps),
+                        ],
+                      ),
                     ),
-                  ]),
+                  ],
                 ),
               ),
             ),

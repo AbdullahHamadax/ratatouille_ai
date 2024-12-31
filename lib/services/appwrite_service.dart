@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/enums.dart';
 import 'package:recipe_ly/model/ingredient.dart';
 import 'package:recipe_ly/model/recipe.dart';
 import 'package:recipe_ly/model/recipes_list.dart';
@@ -127,6 +128,23 @@ class AppwriteService {
     } catch (e) {
       print('Error uploading image: $e');
       return null;
+    }
+  }
+
+  static Future<String> getImageRecipeUrl(String recipeName) async {
+    final result = await AppwriteService.functions.createExecution(
+      functionId: AppwriteService.recipesFunctionId,
+      body: recipeName,
+      method: ExecutionMethod.pOST,
+      path: '/get/image',
+      headers: {},
+    );
+    if (result.responseStatusCode == 200) {
+      var jsonMap = jsonDecode(result.responseBody);
+      return jsonMap["image"];
+    } else {
+      throw Exception(
+          'Error: ${result.responseStatusCode}, ${result.responseBody}');
     }
   }
 }
