@@ -1,3 +1,4 @@
+import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/screen/home_screen.dart';
 import 'package:recipe_ly/screen/signup_screen.dart';
@@ -17,20 +18,60 @@ class LoginScreenState extends State<LoginScreen> {
   String _message = '';
 
   void _authenticate() async {
+    // Show a loading spinner while the authentication is in progress
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevents dismissing the dialog
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
+      // Attempt to create a session with email and password
       await AppwriteService.account.createEmailPasswordSession(
         email: _emailController.text,
         password: _passwordController.text,
       );
+
       _emailController.clear();
       _passwordController.clear();
-      if (!mounted) return;
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => SplashScreen()));
 
-      setState(() => _message = "Login Successful!");
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+
+      // Navigate to SplashScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SplashScreen()),
+      );
+
+      // Show a success Snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: const Text('Login Successful!'),
+        ),
+      );
+    } on AppwriteException catch (e) {
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(e.message ?? 'An unknown error occurred'),
+        ),
+      );
     } catch (e) {
-      setState(() => _message = "Error: ${e.toString()}");
+      // Handle any unforeseen errors
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content:
+              const Text('An unexpected error occurred. Please try again.'),
+        ),
+      );
     }
   }
 

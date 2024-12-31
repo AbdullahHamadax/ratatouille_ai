@@ -1,3 +1,4 @@
+import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/screen/home_screen.dart';
 import 'package:recipe_ly/screen/login_screen.dart';
@@ -39,13 +40,38 @@ class SignupScreenState extends State<SignupScreen> {
       _lastNameController.clear();
       _emailController.clear();
       _passwordController.clear();
+
       if (!mounted) return;
+
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => SplashScreen()));
 
-      setState(() => _message = "Login Successful!");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: const Text('Sign up Successful!'),
+        ),
+      );
+    } on AppwriteException catch (e) {
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(e.message ?? 'An unknown error occurred'),
+        ),
+      );
     } catch (e) {
-      setState(() => _message = "Error: ${e.toString()}");
+      // Handle any unforeseen errors
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content:
+              const Text('An unexpected error occurred. Please try again.'),
+        ),
+      );
     }
   }
 
