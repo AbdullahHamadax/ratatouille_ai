@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:recipe_ly/model/recipes_list.dart';
-
+import 'package:recipe_ly/screen/recipe_screen.dart';
 
 class RecipesListScreen extends StatefulWidget {
   final RecipesList recipesList;
@@ -30,18 +30,31 @@ class RecipesListScreenState extends State<RecipesListScreen> {
           final recipe = widget.recipesList.recipes[index];
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Ingredient Name
-                  Text(
-                    recipe.name ?? "NA",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RecipeScreen(
+                        recipe: widget.recipesList.recipes[index]
+                    ),
                   ),
-                  // Tiny Plus Button
-                ],
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Ingredient Name
+                    Text(
+                      recipe.name ?? "NA",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    ),
+                    // Tiny Plus Button
+                  ],
+                ),
               ),
             ),
           );

@@ -67,6 +67,7 @@ flutter:
   assets:
     - assets/icons/Ratatouilleai.png
     - assets/music/LeFestin.mp3
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
