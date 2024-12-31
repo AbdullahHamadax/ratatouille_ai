@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:recipe_ly/model/ingredients_list.dart';
 import 'package:recipe_ly/screen/ingredients_list_screen.dart';
 import 'package:recipe_ly/services/appwrite_service.dart';
+import 'package:recipe_ly/services/openai_service.dart';
 
 late List<CameraDescription> cameras;
 late CameraController _cameraController;
@@ -47,81 +48,50 @@ class CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> handleImage(Uint8List imageBytes, String imageName) async {
-    if (!mounted) return;
-
     try {
+      setState(() {
+        _isLoading = true;
+      });
+      _cameraController.pausePreview();
       final fileId = await AppwriteService.uploadImage(imageBytes, imageName);
       if (fileId == null) throw Exception('Failed to upload image.');
 
       final imageUrl = AppwriteService.getImageUrl(fileId);
       final base64Image = base64Encode(imageBytes);
 
-      await callOpenAi(base64Image, imageUrl);
-    } catch (e) {
-      print('Error in handleImage: $e');
-    }
-  }
-
-  Future<void> callOpenAi(String base64Image, String imageUrl) async {
-    setState(() {
-      _isLoading = true;
-    });
-    _cameraController.pausePreview();
-    try {
-      Functions functions = Functions(AppwriteService.client);
-      if (!mounted) return;
-
-      final result = await functions.createExecution(
-          functionId: '6772e1ae002207c1e1b3',
-          body: "data:image/jpeg;base64,$base64Image",
-          method: ExecutionMethod.pOST,
-          headers: {},
-          path: "/get/ingredients");
+      final ingredientsList =
+          await OpenaiService.extractIngredients(base64Image, imageUrl);
 
       setState(() {
         _isLoading = false;
       });
       _cameraController.resumePreview();
 
-      if (result.responseStatusCode == 200) {
-        final String pureJsonString = jsonDecode(result.responseBody);
-        final jsonMap = jsonDecode(pureJsonString);
-        final ingredientsList = IngredientsList.fromJson(jsonMap);
+      if (!mounted) return;
 
-        await AppwriteService.updateIngredientsListWithImage(
-            imageUrl, pureJsonString);
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => IngredientsListScreen(
-              ingredientsList: ingredientsList,
-            ),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IngredientsListScreen(
+            ingredientsList: ingredientsList,
           ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Error: ${result.responseStatusCode}, ${result.responseBody}'),
-          ),
-        );
-      }
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(
+          content: Text(e.toString()),
+        ),
       );
     } finally {
       setState(() {
         _isLoading = false;
       });
+      _cameraController.resumePreview();
     }
   }
 
   Future<void> takePicture(BuildContext context) async {
-    setState(() {
-      _isLoading = true;
-    });
     late XFile picture;
     try {
       // Ensure the camera is initialized.
@@ -135,19 +105,6 @@ class CameraScreenState extends State<CameraScreen> {
         imageBytes = await File(picture.path).readAsBytes();
       }
       await handleImage(imageBytes, picture.name);
-      // String? imageId = await uploadImage(imageBytes, picture.name);
-      // if (imageId == null) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       content: Text('Error uploading image'),
-      //     ),
-      //   );
-      //   return;
-      // }
-
-      // final String base64Image = base64Encode(imageBytes);
-
-      // await callOpenAi(base64Image);
     } finally {
       setState(() {
         _isLoading = false;
@@ -157,9 +114,6 @@ class CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> openGallery(BuildContext context) async {
-    setState(() {
-      _isLoading = true;
-    });
     if (!mounted) return;
     try {
       final ImagePicker picker = ImagePicker();
@@ -169,12 +123,6 @@ class CameraScreenState extends State<CameraScreen> {
       if (picture != null) {
         final Uint8List imageBytes = await picture.readAsBytes();
         await handleImage(imageBytes, picture.name);
-
-        // final String base64Image = base64Encode(imageBytes);
-
-        // if (!mounted) return;
-
-        // await callOpenAi(base64Image);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
