@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/enums.dart';
 import 'package:recipe_ly/model/ingredients_list.dart';
+import 'package:recipe_ly/model/recipe.dart';
+import 'package:recipe_ly/model/recipes_list.dart';
 import 'package:recipe_ly/services/appwrite_service.dart';
 
 class OpenaiService {
@@ -9,26 +11,43 @@ class OpenaiService {
 
   static Future<IngredientsList> extractIngredients(
       String base64Image, String imageUrl) async {
-    try {
-      Functions functions = Functions(AppwriteService.client);
-      final result = await functions.createExecution(
-          functionId: '6772e1ae002207c1e1b3',
-          body: "data:image/jpeg;base64,$base64Image",
-          method: ExecutionMethod.pOST,
-          headers: {},
-          path: "/get/ingredients");
+    final result = await AppwriteService.functions.createExecution(
+        functionId: AppwriteService.recipesFunctionId,
+        body: "data:image/jpeg;base64,$base64Image",
+        method: ExecutionMethod.pOST,
+        headers: {},
+        path: "/get/ingredients");
 
-      if (result.responseStatusCode == 200) {
-        final String pureJsonString = jsonDecode(result.responseBody);
-        final jsonMap = jsonDecode(pureJsonString);
-        final ingredientsList = IngredientsList.fromJson(jsonMap);
-        return ingredientsList;
-      } else {
-        throw Exception(
-            'Error: ${result.responseStatusCode}, ${result.responseBody}');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
+    if (result.responseStatusCode == 200) {
+      final String pureJsonString = jsonDecode(result.responseBody);
+      final jsonMap = jsonDecode(pureJsonString);
+      final ingredientsList = IngredientsList.fromJson(jsonMap);
+      return ingredientsList;
+    } else {
+      throw Exception(
+          'Error: ${result.responseStatusCode}, ${result.responseBody}');
     }
+  }
+}
+
+Future<RecipesList> generateRecipes(IngredientsList ingredientsList) async {
+  final result = await AppwriteService.functions.createExecution(
+    functionId: AppwriteService.recipesFunctionId,
+    body: ingredientsList.toJson().toString(),
+    method: ExecutionMethod.pOST,
+    path: '/get/recipes',
+    headers: {},
+  );
+  if (result.responseStatusCode == 200) {
+    var jsonMap = jsonDecode(jsonDecode(result.responseBody));
+    // print(jsonMap.toString());
+
+    Recipe recipe = Recipe.fromJson(jsonMap);
+    List<Recipe> recipes = [recipe, recipe, recipe];
+    final recipesList = RecipesList(recipes: recipes);
+    return recipesList;
+  } else {
+    throw Exception(
+        'Error: ${result.responseStatusCode}, ${result.responseBody}');
   }
 }
